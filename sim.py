@@ -77,7 +77,9 @@ sensors = []
 
 numRemoved = 0
 
-print(initialLocations)
+toRemove = []
+
+#print(initialLocations)
 
 for loc in initialLocations:
     sensors.append(Sensor(loc, 'A'))
@@ -85,16 +87,19 @@ for loc in initialLocations:
 #compute initial coverage for each target
 for sensor in sensors:
     for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[0] - target.location[0], 2)) <= sensor.range:
+        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensor.range:
             target.k += 1
 
 #see which sensors we can remove
 for sensor in sensors:
     for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[0] - target.location[0], 2)) <= sensor.range:
+        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensor.range:
             if target.k > globalK:
                 target.k -= 1
-                sensors.remove(sensor)
+                if sensor in sensors:
+                    print("removed sensor at ", sensor.location)
+                    sensors.remove(sensor)
+                toRemove.append(sensor)
                 numRemoved += 1
 
 print("Removed in first sweep: ", numRemoved)
@@ -103,10 +108,10 @@ numRemoved = 0
 #check if we can turn any sensors into type B
 for sensor in sensors:
     for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[0] - target.location[0], 2)) <= sensorType["B"][0]:
+        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["B"][0]:
             if target.k > globalK:
                 target.k -= 1
-                sensors.setType("B")
+                sensor.setType("B")
                 numRemoved += 1
 
 print("Changed to type B: ", numRemoved)
@@ -115,11 +120,32 @@ numRemoved = 0
 #check if we can turn any sensors into type C
 for sensor in sensors:
     for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[0] - target.location[0], 2)) <= sensorType["C"][0]:
+        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["C"][0]:
             if target.k > globalK:
                 target.k -= 1
-                sensors.setType("C")
+                sensor.setType("C")
                 numRemoved += 1
 
 print("Changed to type B: ", numRemoved)
 numRemoved = 0
+
+print(sensors)
+
+plotArr = []
+
+for sensor in sensors:
+    plotArr.append(sensor.location)
+
+fig, ax = plt.subplots()
+
+data = np.array(plotArr)
+
+x, y = data.T
+
+ax.scatter(x, y)
+
+fig.set_size_inches(5, 5)
+
+ax.set(xlim=(0, 500), ylim=(0, 500))
+
+plt.show()

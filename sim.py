@@ -1,151 +1,210 @@
-import random
+# File Information ---------------------------------------------
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+# 	File Name: sim.py
+#
+# 	File Description: 
+# 
+# 	File History:
+#       - 2022-06-15: Created by Vojdan B.
+# 		- 2022-06-17: Debugged by Rohit S.
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+
+# Imports --------------------------------------------------------
 from random import randint
-
-import math
 from math import sqrt
-
 import matplotlib.pyplot as plt
 import numpy as np
-
-plt.style.use('_mpl-gallery')
-
 from matplotlib.pyplot import figure
 
-#figure(figsize=(8, 6), dpi=80)
+# Global Variables -----------------------------------------------
 
-#enumeration for sensor type -> radius
-sensorType = {"A": [100, 300], "B": [70, 170], "C": [30, 65]}
-
+# Class Declarations ---------------------------------------------
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+#	Class Name: Target
+#
+#	Class Description: 
+# 
+#	Class History: 
+#       - 2022-06-15: Created by Vojdan B.
+# 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 class Target:
-    def __init__(self):
-        self.location = [random.randint(0,500), random.randint(0,500)] 
-        self.k = 0
+    def __init__(self, i_ID):
+        self.i_ID       = i_ID
+        self.location   = [randint(0,500), randint(0,500)] 
+        self.k          = 0
 
-targets = []
+    def getXCoordinate(self):
+        return self.location[0]
 
+    def getYCoordinate(self):
+        return self.location[1]
+
+    def printCoordinates(self):
+        print(f"X = {self.getXCoordinate()}, Y = {self.getYCoordinate()}")
+
+    def checkCoverage(self, sensor):
+        return sqrt(pow(sensor.location[0] - self.location[0], 2) + pow(sensor.location[1] - self.location[1], 2)) <= sensor.range
+    
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+#	Class Name: Target
+#
+#	Class Description: 
+# 
+#	Class History: 
+#       - 2022-06-15: Created by Vojdan B.
+# 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 class Sensor:
     def __init__(self, location, type):
         self.location = location
         self.type = type
-        self.range = sensorType[type][0]
-        self.cost = sensorType[type][1]
+        self.setType(self.type)
 
     def setType(self, type):
         self.range = sensorType[type][0]
         self.cost = sensorType[type][1]
 
-for i in range(17):
-    targets.append(Target())
+    def __str__(self):
+        return f"Type {self.type} sensor at {self.location[0]},{self.location[1]}"
 
-for node in targets:
-    print(node.location[0], ", ", node.location[1])
+# Function Declarations ------------------------------------------
 
-plotArr = []
+# Main Call ------------------------------------------------------
+if __name__ == '__main__':
+    print('Running sim')
 
-for node in targets:
-    plotArr.append(node.location)
+    # Configure plot 
+    plt.style.use('_mpl-gallery')
 
-fig, ax = plt.subplots()
+    #enumeration for sensor type -> radius
+    sensorType = {"A": [100, 300], "B": [70, 170], "C": [30, 65]}
 
-data = np.array(plotArr)
+    # Create an empty array to store created targets
+    targets = []
 
-x, y = data.T
+    # Create i nodes and store in targets
+    for i in range(17):
+        targets.append(Target(i_ID=i))
 
-ax.scatter(x, y)
+    # Show location of each node, store in occupied array
+    a_Occupied = []
+    for node in targets:
+        node.printCoordinates()
+        a_Occupied.append(node.location)
 
-fig.set_size_inches(5, 5)
+    print(a_Occupied)
 
-ax.set(xlim=(0, 500), ylim=(0, 500))
+    # Create an empty array to store plots
+    plotArr = []
 
-plt.show()
+    # Go through each node and store location data in plot array
+    for node in targets:
+        plotArr.append(node.location)
 
-initialLocations = []
+    # Create plot
+    fig, ax = plt.subplots()
 
-globalK = 3
+    # Convert location data to np array for plotting
+    data = np.array(plotArr)
 
-#initialize set of all 500x500 potential sites
-for i in range(500):
-    for j in range (500):
-        initialLocations.append([i, j])
+    # Get x and y coordinates from data
+    x, y = data.T
 
-#do not allow sensor and target at the same site
-for target in targets:
-    if target.location in initialLocations:
-        initialLocations.remove(target.location)
+    # Create scatter plot
+    ax.scatter(x, y)
 
-sensors = []
+    # Configure and show plot
+    fig.set_size_inches(5, 5)
+    ax.set(xlim=(0, 500), ylim=(0, 500))
+    plt.show()
 
-numRemoved = 0
+    # Create array to store potential sites
+    initialLocations = []
 
-toRemove = []
+    globalK = 3
 
-#print(initialLocations)
+    #initialize set of all 500x500 potential sites
+    for i in range(500):
+        for j in range (500):
+            if [i, j] in a_Occupied:
+                # If a target is there, don't save it as a potential type
+                pass 
+            else:
+                # If nothing is there, it is an initial location
+                initialLocations.append([i, j])
 
-for loc in initialLocations:
-    sensors.append(Sensor(loc, 'A'))
+    # Create variables to store sensor info
+    sensors = []
+    numRemoved = 0
+    toRemove = []
 
-#compute initial coverage for each target
-for sensor in sensors:
-    for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensor.range:
-            target.k += 1
+    a_GoodSensors = []      
 
-#see which sensors we can remove
-for sensor in sensors:
-    for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensor.range:
-            if target.k > globalK:
-                target.k -= 1
-                if sensor in sensors:
-                    print("removed sensor at ", sensor.location)
-                    sensors.remove(sensor)
-                toRemove.append(sensor)
-                numRemoved += 1
+    # For every location, add a sensor to it
+    for loc in initialLocations:
+        # Create a sensor object at specific location
+        o_Sensor = Sensor(loc, 'A')
+        # Attach to sensors array
+        sensors.append(o_Sensor)
+        # Compute initial coverage for each target
+        for target in targets:
+            inRange = target.checkCoverage(o_Sensor)
+            if inRange:
+                target.k += 1
+                if target.k > globalK:
+                    target.k -= 1
+                    numRemoved += 1
+                else:
+                    a_GoodSensors.append(o_Sensor)
 
-print("Removed in first sweep: ", numRemoved)
-numRemoved = 0
+    print("Removed in first sweep: ", numRemoved)
+    numRemoved = 0
 
-#check if we can turn any sensors into type B
-for sensor in sensors:
-    for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["B"][0]:
-            if target.k > globalK:
-                target.k -= 1
-                sensor.setType("B")
-                numRemoved += 1
+    sensors = a_GoodSensors
 
-print("Changed to type B: ", numRemoved)
-numRemoved = 0
+    #check if we can turn any sensors into type B
+    for sensor in sensors:
+        for target in targets:
+            if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["B"][0]:
+                if target.k > globalK:
+                    target.k -= 1
+                    sensor.setType("B")
+                    numRemoved += 1
 
-#check if we can turn any sensors into type C
-for sensor in sensors:
-    for target in targets:
-        if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["C"][0]:
-            if target.k > globalK:
-                target.k -= 1
-                sensor.setType("C")
-                numRemoved += 1
+    print("Changed to type B: ", numRemoved)
+    numRemoved = 0
 
-print("Changed to type B: ", numRemoved)
-numRemoved = 0
+    #check if we can turn any sensors into type C
+    for sensor in sensors:
+        for target in targets:
+            if sqrt(pow(sensor.location[0] - target.location[0], 2) + pow(sensor.location[1] - target.location[1], 2)) <= sensorType["C"][0]:
+                if target.k > globalK:
+                    target.k -= 1
+                    sensor.setType("C")
+                    numRemoved += 1
 
-print(sensors)
+    print("Changed to type B: ", numRemoved)
+    numRemoved = 0
 
-plotArr = []
+    print(sensors)
 
-for sensor in sensors:
-    plotArr.append(sensor.location)
+    plotArr = []
 
-fig, ax = plt.subplots()
+    for sensor in sensors:
+        plotArr.append(sensor.location)
 
-data = np.array(plotArr)
+    fig, ax = plt.subplots()
 
-x, y = data.T
+    data = np.array(plotArr)
 
-ax.scatter(x, y)
+    x, y = data.T
 
-fig.set_size_inches(5, 5)
+    ax.scatter(x, y)
 
-ax.set(xlim=(0, 500), ylim=(0, 500))
+    fig.set_size_inches(5, 5)
 
-plt.show()
+    ax.set(xlim=(0, 500), ylim=(0, 500))
+
+    plt.show()

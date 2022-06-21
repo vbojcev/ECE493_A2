@@ -20,7 +20,7 @@ X_LIM = 500
 Y_LIM = 500
 
 SENSOR_TYPE = {"A": [100, 300], "B": [70, 170], "C": [30, 65]}
-GLOBAL_K = 3
+GLOBAL_K = 1
 
 
 # Class Declarations ---------------------------------------------
@@ -49,8 +49,8 @@ class Target:
         print(f"X = {self.getXCoordinate()}, Y = {self.getYCoordinate()}")
 
     def checkCoverage(self, sensor):
-        return sqrt(pow(sensor.location[0] - self.location[0], 2) + pow(sensor.location[1] - self.location[1], 2)) <= sensor.range
-
+        b_IsCovered = sqrt(pow(sensor.location[0] - self.location[0], 2) + pow(sensor.location[1] - self.location[1], 2)) <= sensor.range
+        return b_IsCovered
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 #	Class Name: TargetManager
 #
@@ -96,18 +96,23 @@ class Sensor:
         self.b_isOn = False
 
     def setCoveredTargets(self, o_TargetManager):
+        # For this sensor, go through each target
         for o_Target in o_TargetManager.a_Targets:
+            # For each target, check if this sensor covers it
             if o_Target.checkCoverage(self):
-                self.a_CoveredTargets.append(o_Target)
-                o_Target.k += 1
-                o_Target.a_CoveredSensors.append(self)
+                # Ensure that we didn't already mark this target as covered
+                if self not in o_Target.a_CoveredSensors:
+                    self.a_CoveredTargets.append(o_Target)
+                    o_Target.k += 1
+                    o_Target.a_CoveredSensors.append(self)
                 if o_Target.k > GLOBAL_K:
                     i_MinCover = 1000000
                     # We have to remove the least covering node
                     for o_Sensor in o_Target.a_CoveredSensors:
-                        if len(o_Sensor.a_CoveredTargets) < i_MinCover:
+                        if len(o_Sensor.a_CoveredTargets) <= i_MinCover:
                             i_MinCover = len(o_Sensor.a_CoveredTargets)
                             o_BadSensor = o_Sensor
+                    o_BadSensor.a_CoveredTargets.remove(o_Target)
                     o_Target.a_CoveredSensors.remove(o_BadSensor)
                     o_Target.k -= 1
 
@@ -138,6 +143,18 @@ class SensorManager:
                     a_UpdatedSensorList.append(o_Sensor)
 
         self.a_Sensors = a_UpdatedSensorList
+
+    def purgeSensors(self):
+        a_UpdatedSensorList = []
+        for o_Sensor in self.a_Sensors:
+            b_Essential = False
+            for o_Target in o_Sensor.a_CoveredTargets:
+                if o_Target.k - 1 < GLOBAL_K:
+                    b_Essential = True
+            if (o_Sensor not in a_UpdatedSensorList) and b_Essential:
+                a_UpdatedSensorList.append(o_Sensor)
+        self.a_Sensors = a_UpdatedSensorList
+
 
 # Function Declarations ------------------------------------------
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
@@ -185,7 +202,7 @@ def createSensorNodes(o_TargetManager):
             # Check if space is free
             if [x, y] not in o_TargetManager.a_Occupied:
                 # Create a sensor at unoccupied space
-                o_Sensor = Sensor([x,y], "C")
+                o_Sensor = Sensor([x,y], "A")
                 # For the sensor at that space, check how many targets
                 #   are covered
                 o_Sensor.setCoveredTargets(o_TargetManager)
@@ -211,6 +228,15 @@ if __name__ == '__main__':
     o_SensorManager.updateSensors(o_TargetManager)
 
     print(f"Number of sensors: {len(o_SensorManager.a_Sensors)}")
+
+    #updateK()
+
+    o_SensorManager.purgeSensors()
+
+    print(f"Number of sensors: {len(o_SensorManager.a_Sensors)}")
+
+    for target in o_TargetManager.a_Targets:
+        print (target.location," ",target.k)
 
     # Now we should plot targets and their covering sensors
     # Configure plot 

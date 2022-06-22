@@ -229,14 +229,11 @@ if __name__ == '__main__':
 
     print(f"Number of sensors: {len(o_SensorManager.a_Sensors)}")
 
-    #updateK()
-
     o_SensorManager.purgeSensors()
 
     print(f"Number of sensors: {len(o_SensorManager.a_Sensors)}")
 
-    for target in o_TargetManager.a_Targets:
-        print (target.location," ",target.k)
+
 
     # Now we should plot targets and their covering sensors
     # Configure plot 
@@ -246,15 +243,36 @@ if __name__ == '__main__':
     a_TargetData     = np.array(o_TargetManager.a_Plots)
     a_TargetX, a_TargetY = a_TargetData.T
 
-    a_Plot = []
-    for o_Sensor in o_SensorManager.a_Sensors:
-        a_Plot.append(o_Sensor.location)
-    a_SensorData            = np.array(a_Plot)
-    a_SensorX, a_SensorY    = a_SensorData.T
-
     ax.scatter(a_TargetX, a_TargetY, s=10, c='b', marker="s", label=f'Targets [{len(o_TargetManager.a_Targets)}]')
-    ax.scatter(a_SensorX, a_SensorY, s=10, c='r', marker="o", label=f'Sensors [{len(o_SensorManager.a_Sensors)}]')
-    
+
+    a_Plot_A = []
+    a_Plot_B = []
+    a_Plot_C = []
+    for o_Sensor in o_SensorManager.a_Sensors:
+        if o_Sensor.type == "A":
+            a_Plot_A.append(o_Sensor.location)
+        elif o_Sensor.type == "B":
+            a_Plot_B.append(o_Sensor.location)
+        elif o_Sensor.type == "C":
+            a_Plot_C.append(o_Sensor.location)
+
+
+    a_SensorData_A          = np.array(a_Plot_A)
+    if len(a_Plot_A) > 0:
+        a_SensorX_A, a_SensorY_A    = a_SensorData_A.T
+        ax.scatter(a_SensorX_A, a_SensorY_A, s=10, c='r', marker="o", label=f'Type A Sensors [{len(a_Plot_A)}]')
+
+    a_SensorData_B          = np.array(a_Plot_B)
+    if len(a_Plot_B) > 0:
+        a_SensorX_B, a_SensorY_B    = a_SensorData_B.T
+        ax.scatter(a_SensorX_B, a_SensorY_B, s=10, c='g', marker="o", label=f'Type B Sensors [{len(a_Plot_B)}]')
+
+    a_SensorData_C          = np.array(a_Plot_C)
+    if len(a_Plot_C) > 0:
+        a_SensorX_C, a_SensorY_C    = a_SensorData_C.T
+        ax.scatter(a_SensorX_C, a_SensorY_C, s=10, c='m', marker="o", label=f'Type C Sensors [{len(a_Plot_C)}]')
+
+
     fig.set_size_inches(5, 5)
     plt.legend(loc='upper left');
     ax.set(xlim=(0, X_LIM), ylim=(0, Y_LIM))

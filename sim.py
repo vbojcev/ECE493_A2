@@ -415,7 +415,7 @@ if __name__ == '__main__':
     print("-------------------------------------------------------------")
     plot()
 
-    """o_SensorManager.reduceSensorsB()
+    o_SensorManager.reduceSensorsB()
     o_TargetManager.resetK(o_SensorManager)
     o_SensorManager.updateCoverage(o_TargetManager)
 
@@ -435,6 +435,6 @@ if __name__ == '__main__':
     print("Changing to type C if possible...")
     showStatus()
     print("-------------------------------------------------------------")
-    plot()"""
+    plot()
 
     print("TOTAL COST: ",calculateCost(o_SensorManager))    

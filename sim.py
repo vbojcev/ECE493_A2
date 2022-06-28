@@ -9,14 +9,6 @@
 # 		- 2022-06-17: Debugged by Rohit S.
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 
-#TODO#
-
-#MAKE PURGESENSORS() RUN IN A LOOP UNTIL IT DOESN'T PURGE ANY SENSORS IN A GIEVN LOOP
-
-#FOR A SENSOR THAT ONLY COVERS 1 TARGET, MOVE IT RIGHT UP TO THE TARGET AND DOWNSIZE IT
-#ALSO, FOR SENSORS THAT COVER "N" TARGETS BUT N-1 ARE COVERED BY OTHER SENSORS, DO THE SAME FOR THE 1 REMAINING SENSOR
-#MAKE COST CALCULATING FUNCTION
-
 
 # Imports --------------------------------------------------------
 from random import randint
@@ -340,9 +332,6 @@ def purgeSensors(o_TargetManager, o_SensorManager):
         elif b_Essential == False:
             for o_Target in o_Sensor.a_CoveredTargets:
                 o_Target.k -= 1
-    for sensor in o_SensorManager.a_Sensors:
-        """if sensor not in a_UpdatedSensorList:
-            print ("Removing Sensor at ",sensor.location)"""
     o_SensorManager.a_Sensors = a_UpdatedSensorList
     return i_returner - len(o_SensorManager.a_Sensors)
 
@@ -360,8 +349,6 @@ if __name__ == '__main__':
     # Create Targets, managed by a TargetManager
     i_NumTargets        = 17 
     o_TargetManager     = createTargetNodes(i_NumTargets)
-
-    #plot()
 
     costAnalysis=[]
     kRange = []
@@ -381,78 +368,27 @@ if __name__ == '__main__':
         o_SensorManager.updateCoverage(o_TargetManager)
         #----------------------------------
 
-        """print("-------------------------------------------------------------")
-        print(f"Number of initial sensors: {len(o_SensorManager.a_Sensors)}")
-        showStatus()
-        print("TOTAL COST: ",calculateCost(o_SensorManager))
-        print("-------------------------------------------------------------")
-        #plot()"""
-
-        """o_SensorManager.updateSensors(o_TargetManager)
-        o_TargetManager.resetK(o_SensorManager)
-        o_SensorManager.updateCoverage(o_TargetManager)
-
-        print('\n\n\n')
-        print("-------------------------------------------------------------")
-        print(f"Number of updated sensors: {len(o_SensorManager.a_Sensors)}")
-        showStatus()
-        print("TOTAL COST: ",calculateCost(o_SensorManager))
-        print("-------------------------------------------------------------")
-        plot()"""
-
         for i in range(GLOBAL_K):
             purgeSensors(o_TargetManager, o_SensorManager)
             o_TargetManager.resetK(o_SensorManager)
             o_SensorManager.updateCoverage(o_TargetManager)
 
-            """print('\n\n\n')
-            print("-------------------------------------------------------------")
-            print(f"Number of purged sensors: {len(o_SensorManager.a_Sensors)}")
-            showStatus()
-            print("TOTAL COST: ",calculateCost(o_SensorManager))
-            print("-------------------------------------------------------------")
-            #plot()"""
-
             movedSensors = o_SensorManager.bringCloser()
             o_TargetManager.resetK(o_SensorManager)
             o_SensorManager.updateCoverage(o_TargetManager)
-
-            """print('\n\n\n')
-            print("-------------------------------------------------------------")
-            print(f"Number of moved sensors: ",movedSensors)
-            showStatus()
-            print("TOTAL COST: ",calculateCost(o_SensorManager))
-            print("-------------------------------------------------------------")
-            #plot()"""
 
             o_SensorManager.reduceSensorsB()
             o_TargetManager.resetK(o_SensorManager)
             o_SensorManager.updateCoverage(o_TargetManager)
 
-            """print('\n\n\n')
-            print("-------------------------------------------------------------")
-            print("Changing to type B if possible...")
-            showStatus()
-            print("TOTAL COST: ",calculateCost(o_SensorManager))
-            print("-------------------------------------------------------------")
-            #plot()"""
-
             o_SensorManager.reduceSensorsC()
             o_TargetManager.resetK(o_SensorManager)
             o_SensorManager.updateCoverage(o_TargetManager)
 
-            """print('\n\n\n')
-            print("-------------------------------------------------------------")
-            print("Changing to type C if possible...")
-            showStatus()
-            print("TOTAL COST: ",calculateCost(o_SensorManager))
-            print("-------------------------------------------------------------")
-            #plot()"""
-
         showStatus()
         print("TOTAL COST for K = ",GLOBAL_K,": ",calculateCost(o_SensorManager))
         #Comment the following plot() command if you want the costAnalysis at the exnd to be readable.
-        plot()
+        #plot()
         costAnalysis.append(calculateCost(o_SensorManager))
     
     print(kRange)
